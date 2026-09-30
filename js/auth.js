@@ -5,9 +5,9 @@ const AUTH_KEYS = {
 
 const DEFAULT_ADMIN_USER = {
   id: 'usr-default',
-  name: 'Oliver Camacho',
-  email: 'oliver.camacho@correo.edu.co',
-  password: '123',
+  name: 'admin',
+  email: 'admin21@gmail.com',
+  password: '12354',
   budget: 150000,
   currency: 'COP',
   avatar: '👨‍💻',
