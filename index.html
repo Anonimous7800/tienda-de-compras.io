@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PICH FRESH // Mercado & Hogar - Tienda Inteligente 2026</title>
+  <meta name="description" content="PICH FRESH. Tienda inteligente de alimentos frescos, despensa y productos de aseo para el hogar con control de presupuesto en tiempo real.">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%23059669%22/><text x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2250%22>🌱</text></svg>">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.8.0/sql-wasm.js"></script>
+</head>
+<body>
+
+  <header class="top-announcement">
+    <div>
+      <span>🌱 PICH FRESH // Mercado & Hogar</span>
+      <span class="badge-pill" style="margin-left: 8px;">Envíos Gratis > $50.000</span>
+    </div>
+    <div class="hide-mobile">
+      <span>Calidad Garantizada • Control de Presupuesto • Oliver Stid Camacho Diaz</span>
+    </div>
+  </header>
+
+  <nav class="main-navbar">
+    <div class="brand-logo-wrap" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">
+      <div class="logo-symbol">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+      </div>
+      <div>
+        <div class="logo-text-title">PICH <span>FRESH</span></div>
+        <div class="logo-text-subtitle">Mercado & Hogar</div>
+      </div>
+    </div>
+
+    <ul class="nav-menu-links">
+      <li><a class="nav-link-btn active" onclick="window.scrollTo({top: 0, behavior: 'smooth'})">Inicio</a></li>
+      <li><a class="nav-link-btn" onclick="app.filterCategory('all'); document.getElementById('storeSection').scrollIntoView({behavior: 'smooth'})">Catálogo</a></li>
+      <li><a class="nav-link-btn" onclick="app.filterCategory('despensa'); document.getElementById('storeSection').scrollIntoView({behavior: 'smooth'})">Alimentos</a></li>
+      <li><a class="nav-link-btn" onclick="app.filterCategory('aseo_hogar'); document.getElementById('storeSection').scrollIntoView({behavior: 'smooth'})">Aseo</a></li>
+      <li><a class="nav-link-btn" onclick="app.filterCategory('frescos'); document.getElementById('storeSection').scrollIntoView({behavior: 'smooth'})">Lácteos</a></li>
+      <li><a class="nav-link-btn" onclick="app.openModal('settingsModal')">Presupuesto</a></li>
+      <li><a class="nav-link-btn" onclick="app.openHistoryModal()">Historial</a></li>
+      <li><a class="nav-link-btn" onclick="app.toggleAdminView()">⚙️ Admin</a></li>
+    </ul>
+
+    <div class="nav-user-actions">
+      <button class="btn-open-cart" onclick="app.openCartDrawer()" title="Ver carrito de compras">
+        <span>🛒 Carrito</span>
+        <span class="cart-qty-badge" id="navCartCount">0</span>
+      </button>
+
+      <div id="authActionsContainer" style="display: flex; gap: 8px;">
+        <button class="btn-outline-client" onclick="app.openModal('loginModal')">Acceso Cliente</button>
+        <button class="btn-primary-client" onclick="app.openModal('registerModal')">Registrarse</button>
+      </div>
+
+      <div id="userProfileNav" class="user-logged-pill" style="display: none;" onclick="app.openModal('userProfileModal')">
+        <span id="navUserAvatar">🛒</span>
+        <span id="navUserName">Oliver Camacho</span>
+      </div>
+    </div>
+  </nav>
+
+  <section class="market-hero-banner">
+    <div class="hero-inner-container">
+      <div>
+        <div class="hero-pill-badge">
+          <span>✓</span>
+          <span>CALIDAD & FRESCURA // TEMPORADA 2026</span>
+        </div>
+        <h1 class="hero-main-title">
+          Alimentos Frescos y Aseo para tu Hogar, <span>al mejor precio.</span>
+        </h1>
+        <p class="hero-subtitle-desc">
+          Organiza tus compras con cálculo automático en tiempo real, control estricto de tu presupuesto y despacho directo sin costos ocultos.
+        </p>
+
+        <div class="hero-highlights-row">
+          <div class="highlight-box">
+            <div class="highlight-title">Calidad</div>
+            <div class="highlight-val">100% Fresco</div>
+          </div>
+          <div class="highlight-box">
+            <div class="highlight-title">Presupuesto Hogar</div>
+            <div class="highlight-val">$ 150.000</div>
+          </div>
+          <div class="highlight-box">
+            <div class="highlight-title">Entregas</div>
+            <div class="highlight-val">Mismo Día</div>
+          </div>
+        </div>
+
+        <div class="hero-actions-row">
+          <button class="btn-green-cta" onclick="document.getElementById('storeSection').scrollIntoView({behavior: 'smooth'})">
+            Explorar Catálogo 2026
+          </button>
+          <button class="btn-white-cta" onclick="app.filterCategory('aseo_hogar'); document.getElementById('storeSection').scrollIntoView({behavior: 'smooth'})">
+            Línea de Aseo
+          </button>
+          <button class="btn-white-cta" onclick="app.openCartDrawer()">
+            Ver Carrito 🛒
+          </button>
+        </div>
+      </div>
+
+      <div class="hero-card-preview">
+        <div class="hcp-header">
+          <div class="hcp-title">Tu Lista en Vivo</div>
+          <span style="font-size: 0.75rem; color: var(--brand-green); font-weight: 800;">Activo</span>
+        </div>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;">
+          Agrega productos desde el catálogo para calcular tus totales y verificar si te encuentras dentro del presupuesto de tu hogar.
+        </p>
+        <div style="background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 0.8rem; font-weight: 700;">Presupuesto Asignado:</span>
+          <span style="font-family: var(--font-heading); font-size: 1.1rem; font-weight: 900; color: var(--brand-green);">$ 150.000</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="budget-widget-bar">
+    <div class="budget-widget-inner">
+      <div class="b-metric-item">
+        <span class="b-metric-label">Presupuesto del Hogar</span>
+        <span class="b-metric-val" id="barBudgetAmount">$ 150.000</span>
+      </div>
+
+      <div class="b-metric-item">
+        <span class="b-metric-label">Total en Carrito</span>
+        <span class="b-metric-val" id="barTotalAmount" style="color: var(--brand-green);">$ 0</span>
+      </div>
+
+      <div class="b-progress-box">
+        <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted);">
+          <span id="barRemainingLabel">Presupuesto Disponible</span>
+          <span id="barRemainingAmount" style="font-weight: 800; color: var(--brand-green);">$ 150.000</span>
+        </div>
+        <div class="b-progress-track">
+          <div class="b-progress-fill" id="barBudgetFill" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-outline-client" style="padding: 7px 14px; font-size: 0.78rem;" onclick="app.openModal('settingsModal')">
+          ⚙️ Ajustar Límite
+        </button>
+        <button class="btn-outline-client" style="padding: 7px 14px; font-size: 0.78rem;" onclick="StorageManager.exportDataCSV()">
+          📊 Excel
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <main class="store-content-area" id="storeSection">
+    <div class="filter-toolbar">
+      <div class="category-nav-scroll">
+        <button class="cat-pill-btn active" data-cat="all" onclick="app.filterCategory('all')">Todos los Productos</button>
+        <button class="cat-pill-btn" data-cat="despensa" onclick="app.filterCategory('despensa')">🌾 Alimentos & Despensa</button>
+        <button class="cat-pill-btn" data-cat="frescos" onclick="app.filterCategory('frescos')">🥛 Frescos & Lácteos</button>
+        <button class="cat-pill-btn" data-cat="carnes" onclick="app.filterCategory('carnes')">🥩 Carnes & Aves</button>
+        <button class="cat-pill-btn" data-cat="aseo_hogar" onclick="app.filterCategory('aseo_hogar')">🧹 Aseo & Limpieza</button>
+        <button class="cat-pill-btn" data-cat="cuidado_personal" onclick="app.filterCategory('cuidado_personal')">🧴 Cuidado Personal</button>
+        <button class="cat-pill-btn" data-cat="bebidas" onclick="app.filterCategory('bebidas')">☕ Bebidas & Cafés</button>
+      </div>
+
+      <div class="search-box-wrap">
+        <input type="text" class="search-box-input" id="storeSearchInput" placeholder="Buscar alimento, aseo o marca...">
+      </div>
+    </div>
+
+    <div class="market-products-grid" id="storeProductsGrid"></div>
+  </main>
+
+  <section id="adminDashboardSection">
+    <div class="admin-header">
+      <div class="admin-title-wrap">
+        <h2>Panel de Inventario & Base de Datos SQLite</h2>
+        <p>Gestión directa de catálogo con persistencia relacional en SQLite WebAssembly</p>
+      </div>
+      <div class="admin-header-actions">
+        <button class="btn-green-cta" onclick="app.openAddProductModal()">+ Nuevo Producto</button>
+        <button class="btn-white-cta" onclick="app.downloadSqlite()">💾 Descargar Base de Datos .sqlite</button>
+        <button class="btn-white-cta" onclick="app.toggleAdminView()">Volver a la Tienda</button>
+      </div>
+    </div>
+
+    <div class="admin-stats-grid">
+      <div class="admin-stat-card">
+        <span class="asc-label">Total Referencias</span>
+        <span class="asc-val" id="adminStatCount">0</span>
+      </div>
+      <div class="admin-stat-card">
+        <span class="asc-label">Unidades en Stock</span>
+        <span class="asc-val" id="adminStatStock">0</span>
+      </div>
+      <div class="admin-stat-card">
+        <span class="asc-label">Valor del Inventario</span>
+        <span class="asc-val" id="adminStatValue" style="color: var(--brand-green);">$ 0</span>
+      </div>
+      <div class="admin-stat-card">
+        <span class="asc-label">Facturas Emitidas</span>
+        <span class="asc-val" id="adminStatOrders" style="color: var(--brand-blue);">0</span>
+      </div>
+    </div>
+
+    <div class="admin-table-container">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Imagen</th>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Precio Venta</th>
+            <th>Stock</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="adminProductsTableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="drawer-overlay" id="cartDrawerModal">
+    <div class="drawer-panel">
+      <div class="drawer-head">
+        <h3>🛒 Carrito de Compras</h3>
+        <button class="btn-close-x" onclick="app.closeCartDrawer()">&times;</button>
+      </div>
+
+      <div class="drawer-items-list" id="cartItemsList"></div>
+
+      <div class="drawer-footer">
+        <div class="df-sub-row">
+          <span>Subtotal de Productos:</span>
+          <span id="cartDrawerSubtotal">$ 0</span>
+        </div>
+        <div class="df-sub-row">
+          <span>Envío a Domicilio:</span>
+          <span style="color: var(--brand-green); font-weight: 700;">GRATIS</span>
+        </div>
+        <div class="df-sub-row df-total-row">
+          <span>TOTAL:</span>
+          <span id="cartDrawerTotal" style="color: var(--brand-green);">$ 0</span>
+        </div>
+        <button class="btn-proceed-checkout" onclick="app.openCheckoutModal()">
+          Tramitar Pedido y Pagar 🏁
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" id="loginModal">
+    <div class="dialog-card">
+      <div class="dialog-head">
+        <h3>Acceso Cliente</h3>
+        <button class="btn-close-x" onclick="app.closeModal('loginModal')">&times;</button>
+      </div>
+      <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
+        Ingresa a tu cuenta para sincronizar tu carrito y presupuesto familiar en este dispositivo.
+      </p>
+      <form onsubmit="event.preventDefault(); app.handleLogin();">
+        <div class="fld-group">
+          <label for="loginEmail">Correo Electrónico</label>
+          <input type="email" class="fld-input" id="loginEmail" required value="oliver.camacho@correo.edu.co">
+        </div>
+        <div class="fld-group">
+          <label for="loginPassword">Contraseña</label>
+          <input type="password" class="fld-input" id="loginPassword" required value="123">
+        </div>
+        <button type="submit" class="btn-form-confirm">Iniciar Sesión</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" id="registerModal">
+    <div class="dialog-card">
+      <div class="dialog-head">
+        <h3>Registro de Cliente</h3>
+        <button class="btn-close-x" onclick="app.closeModal('registerModal')">&times;</button>
+      </div>
+      <form onsubmit="event.preventDefault(); app.handleRegister();">
+        <div class="fld-group">
+          <label for="regName">Nombre Completo</label>
+          <input type="text" class="fld-input" id="regName" required placeholder="Ej: Oliver Camacho">
+        </div>
+        <div class="fld-group">
+          <label for="regEmail">Correo Electrónico</label>
+          <input type="email" class="fld-input" id="regEmail" required placeholder="correo@ejemplo.com">
+        </div>
+        <div class="fld-group">
+          <label for="regPassword">Contraseña</label>
+          <input type="password" class="fld-input" id="regPassword" required placeholder="Crea una contraseña">
+        </div>
+        <div class="fld-group">
+          <label for="regBudget">Presupuesto Mensual ($)</label>
+          <input type="number" class="fld-input" id="regBudget" value="150000" step="5000">
+        </div>
+        <button type="submit" class="btn-form-confirm">Crear Cuenta</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" id="userProfileModal">
+    <div class="dialog-card">
+      <div class="dialog-head">
+        <h3>Perfil de Comprador</h3>
+        <button class="btn-close-x" onclick="app.closeModal('userProfileModal')">&times;</button>
+      </div>
+      <div style="text-align: center; margin-bottom: 20px;">
+        <div style="font-size: 46px; margin-bottom: 6px;">🛒</div>
+        <h4 id="profileNameDisplay" style="font-size: 1.15rem; font-weight: 800;">Oliver Camacho</h4>
+        <p id="profileEmailDisplay" style="font-size: 0.8rem; color: var(--text-muted);">oliver.camacho@correo.edu.co</p>
+      </div>
+      <button class="btn-white-cta" style="width: 100%; margin-bottom: 10px;" onclick="app.openModal('settingsModal'); app.closeModal('userProfileModal');">
+        Ajustar Presupuesto del Hogar
+      </button>
+      <button class="btn-form-confirm" style="background: transparent; border: 1px solid var(--brand-red); color: var(--brand-red);" onclick="app.handleLogout()">
+        Cerrar Sesión
+      </button>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" id="checkoutModal">
+    <div class="dialog-card" style="max-width: 540px;">
+      <div class="dialog-head">
+        <h3>Finalizar Pedido // Facturación</h3>
+        <button class="btn-close-x" onclick="app.closeModal('checkoutModal')">&times;</button>
+      </div>
+      <div style="background: var(--bg-card-subtle); padding: 12px 14px; border-radius: var(--radius-md); margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700;">Total a Liquidar:</span>
+        <div id="checkoutTotalDisplay" style="font-family: var(--font-heading); font-size: 1.5rem; font-weight: 900; color: var(--brand-green);">$ 0</div>
+      </div>
+      <form onsubmit="event.preventDefault(); app.finalizePurchase();">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="fld-group">
+            <label for="checkoutBuyerName">Nombre Completo *</label>
+            <input type="text" class="fld-input" id="checkoutBuyerName" required value="Oliver Camacho">
+          </div>
+          <div class="fld-group">
+            <label for="checkoutDocId">Cédula / NIT *</label>
+            <input type="text" class="fld-input" id="checkoutDocId" required value="1025487965">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="fld-group">
+            <label for="checkoutPhone">Teléfono / WhatsApp *</label>
+            <input type="tel" class="fld-input" id="checkoutPhone" required value="3124567890">
+          </div>
+          <div class="fld-group">
+            <label for="checkoutCity">Ciudad / Municipio *</label>
+            <input type="text" class="fld-input" id="checkoutCity" required value="Bogotá D.C.">
+          </div>
+        </div>
+        <div class="fld-group">
+          <label for="checkoutAddress">Dirección de Entrega (Calle, Carrera, Apto) *</label>
+          <input type="text" class="fld-input" id="checkoutAddress" required value="Calle 127 # 45 - 20 Apto 302">
+        </div>
+        <div class="fld-group">
+          <label for="checkoutPayMethod">Medio de Pago</label>
+          <select class="fld-select" id="checkoutPayMethod">
+            <option value="Efectivo contra entrega">💵 Efectivo contra entrega</option>
+            <option value="Transferencia PSE / Nequi / Daviplata">📱 Transferencia PSE (Nequi / Daviplata)</option>
+            <option value="Tarjeta Débito / Crédito">💳 Tarjeta Débito / Crédito en línea</option>
+            <option value="Datafono en domicilio">🏧 Datafono al recibir en domicilio</option>
+          </select>
+        </div>
+        <button type="submit" class="btn-form-confirm">Emitir Factura y Confirmar Pedido</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" id="invoiceModal">
+    <div class="dialog-card" style="max-width: 580px;">
+      <div class="dialog-head">
+        <h3>Factura Electrónica de Venta</h3>
+        <button class="btn-close-x" onclick="app.closeModal('invoiceModal')">&times;</button>
+      </div>
+      <div id="invoiceContentArea"></div>
+      <div style="display: flex; gap: 10px; margin-top: 16px;">
+        <button class="btn-white-cta" style="flex: 1;" onclick="window.print()">🖨️ Imprimir / Guardar PDF</button>
+        <button class="btn-green-cta" style="flex: 1;" onclick="app.closeModal('invoiceModal')">Aceptar y Continuar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" id="settingsModal">
+    <div class="dialog-card">
+      <div class="dialog-head">
+        <h3>Presupuesto Familiar</h3>
+        <button class="btn-close-x" onclick="app.closeModal('settingsModal')">&times;</button>
+      </div>
+      <form onsubmit="event.preventDefault(); app.saveBudgetSettings();">
+        <div class="fld-group">
+          <label for="settingBudgetInput">Monto de Presupuesto Disponible ($)</label>
+          <input type="number" class="fld-input" id="settingBudgetInput" min="0" step="5000" value="150000">
+        </div>
+        <button type="submit" class="btn-form-confirm">Guardar Presupuesto</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" id="historyModal">
+    <div class="dialog-card">
+      <div class="dialog-head">
+        <h3>Historial de Pedidos Realizados</h3>
+        <button class="btn-close-x" onclick="app.closeModal('historyModal')">&times;</button>
+      </div>
+      <div id="historyOrdersList"></div>
+    </div>
+  </div>
+
+  <div class="dialog-backdrop" id="adminProductModal">
+    <div class="dialog-card" style="max-width: 580px;">
+      <div class="dialog-head">
+        <h3 id="adminProdModalTitle">Editar Producto en SQLite</h3>
+        <button class="btn-close-x" onclick="app.closeModal('adminProductModal')">&times;</button>
+      </div>
+      <form id="adminProductForm" onsubmit="event.preventDefault(); app.saveProductFromAdmin();">
+        <div class="fld-group">
+          <label for="admProdName">Nombre del Producto *</label>
+          <input type="text" class="fld-input" id="admProdName" required placeholder="Ej: Arroz Diana Premium">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="fld-group">
+            <label for="admProdCategory">Categoría *</label>
+            <select class="fld-select" id="admProdCategory">
+              <option value="despensa">Alimentos & Despensa</option>
+              <option value="frescos">Frescos & Lácteos</option>
+              <option value="carnes">Carnes & Aves</option>
+              <option value="aseo_hogar">Aseo & Limpieza</option>
+              <option value="cuidado_personal">Cuidado Personal</option>
+              <option value="bebidas">Bebidas & Cafés</option>
+            </select>
+          </div>
+          <div class="fld-group">
+            <label for="admProdPrice">Precio Unitario ($) *</label>
+            <input type="number" class="fld-input" id="admProdPrice" required min="50" step="50">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="fld-group">
+            <label for="admProdSpecs">Presentación / Gramaje</label>
+            <input type="text" class="fld-input" id="admProdSpecs" placeholder="Ej: Bolsa 1000g">
+          </div>
+          <div class="fld-group">
+            <label for="admProdStock">Unidades en Stock</label>
+            <input type="number" class="fld-input" id="admProdStock" value="25" min="0">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+          <div class="fld-group">
+            <label for="admProdTag">Etiqueta Destacada</label>
+            <input type="text" class="fld-input" id="admProdTag" placeholder="Ej: Aseo, Fresco, Oferta">
+          </div>
+          <div class="fld-group">
+            <label for="admProdImage">URL de Imagen</label>
+            <input type="url" class="fld-input" id="admProdImage" placeholder="https://images.unsplash.com/...">
+          </div>
+        </div>
+        <div class="fld-group">
+          <label for="admProdDesc">Descripción</label>
+          <input type="text" class="fld-input" id="admProdDesc" placeholder="Breve descripción del producto">
+        </div>
+        <button type="submit" class="btn-form-confirm">Guardar en Base de Datos SQLite</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toastHost"></div>
+
+  <script src="js/products.js"></script>
+  <script src="js/database.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
