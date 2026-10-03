@@ -43,6 +43,32 @@
   --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+[data-theme="dark"] {
+  --bg-body: #0b0f17;
+  --bg-card: #131d2e;
+  --bg-card-subtle: #1a263d;
+  --bg-elevated: #1e2c45;
+
+  --border-color: #26354d;
+  --border-hover: #374b6b;
+  --border-focus: #10b981;
+
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
+  --text-light: #64748b;
+
+  --brand-green-light: rgba(16, 185, 129, 0.15);
+  --brand-green-border: rgba(16, 185, 129, 0.35);
+
+  --brand-amber-light: rgba(217, 119, 6, 0.18);
+  --brand-red-light: rgba(239, 68, 68, 0.18);
+  --brand-blue-light: rgba(37, 99, 235, 0.18);
+
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.5);
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -1296,4 +1322,566 @@ body {
 
 .btn-table-del:hover {
   background: var(--brand-red-light);
+}
+
+/* ========================================================
+   MODO OSCURO ADAPTATIVO & SOBRESCRITURAS
+   ======================================================== */
+[data-theme="dark"] .main-navbar {
+  background: #111827;
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .cat-pill-btn {
+  background: #162032;
+  border-color: #26354d;
+  color: var(--text-main);
+}
+
+[data-theme="dark"] .cat-pill-btn:hover,
+[data-theme="dark"] .cat-pill-btn.active {
+  background: var(--brand-green);
+  color: #ffffff;
+  border-color: var(--brand-green);
+}
+
+[data-theme="dark"] .search-box-input,
+[data-theme="dark"] .store-sort-select,
+[data-theme="dark"] .fld-input,
+[data-theme="dark"] .fld-select,
+[data-theme="dark"] .coupon-field {
+  background: #162032;
+  border-color: #2b3b55;
+  color: #ffffff;
+}
+
+[data-theme="dark"] .search-box-input:focus,
+[data-theme="dark"] .fld-input:focus,
+[data-theme="dark"] .fld-select:focus {
+  border-color: var(--brand-green);
+}
+
+[data-theme="dark"] .market-item-card {
+  background: #131d2e;
+  border-color: #26354d;
+}
+
+[data-theme="dark"] .mic-image-wrap {
+  background: #0f172a;
+}
+
+[data-theme="dark"] .drawer-panel,
+[data-theme="dark"] .dialog-card {
+  background: #131d2e;
+  color: #ffffff;
+  border-color: #26354d;
+}
+
+[data-theme="dark"] .drawer-head,
+[data-theme="dark"] .dialog-head {
+  border-bottom-color: #26354d;
+}
+
+[data-theme="dark"] .drawer-footer {
+  background: #0f172a;
+  border-top-color: #26354d;
+}
+
+[data-theme="dark"] .admin-table tbody tr:hover {
+  background: #1a263d;
+}
+
+[data-theme="dark"] .printable-invoice-paper {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+/* ========================================================
+   BOTÓN DE CAMBIO DE TEMA (DARK / LIGHT TOGGLE)
+   ======================================================== */
+.btn-theme-toggle {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 7px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: var(--transition);
+}
+
+.btn-theme-toggle:hover {
+  border-color: var(--brand-green);
+  color: var(--brand-green);
+  background: var(--brand-green-light);
+}
+
+/* ========================================================
+   ENLACE DE SUITE DE PRUEBAS EN NAVBAR
+   ======================================================== */
+.nav-test-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.test-nav-badge {
+  background: var(--brand-green);
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 900;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.05em;
+}
+
+/* ========================================================
+   BARRA DE BÚSQUEDA, HERRAMIENTAS Y ORDENAMIENTO
+   ======================================================== */
+.search-and-tools-wrap {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.search-box-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-width: 280px;
+}
+
+.search-box-input {
+  width: 100%;
+  padding-right: 68px;
+}
+
+.btn-search-tool {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  font-size: 1.05rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-search-tool:hover {
+  transform: translateY(-50%) scale(1.15);
+}
+
+#btnVoiceSearch {
+  right: 36px;
+}
+
+.search-box-wrap button:nth-of-type(2) {
+  right: 8px;
+}
+
+.btn-search-tool.mic-recording {
+  animation: pulseMic 1s infinite alternate;
+}
+
+@keyframes pulseMic {
+  from { transform: translateY(-50%) scale(1); filter: drop-shadow(0 0 2px #ef4444); }
+  to { transform: translateY(-50%) scale(1.25); filter: drop-shadow(0 0 6px #ef4444); }
+}
+
+.store-sort-select {
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition);
+  font-family: inherit;
+}
+
+.store-sort-select:focus {
+  border-color: var(--brand-green);
+}
+
+.store-meta-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 0 4px;
+}
+
+.store-count-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--text-muted);
+}
+
+/* ========================================================
+   BOTÓN DE FAVORITO EN TARJETAS DE PRODUCTO
+   ======================================================== */
+.mic-fav-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  transition: var(--transition);
+  z-index: 2;
+}
+
+[data-theme="dark"] .mic-fav-btn {
+  background: rgba(30, 41, 59, 0.85);
+}
+
+.mic-fav-btn:hover {
+  transform: scale(1.15);
+}
+
+.mic-fav-btn.active {
+  animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes heartPop {
+  0% { transform: scale(0.8); }
+  50% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+/* ========================================================
+   ALERTAS INTELIGENTES DE PRESUPUESTO
+   ======================================================== */
+.budget-alert-banner {
+  max-width: 1240px;
+  margin: 12px auto 0 auto;
+  padding: 10px 18px;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: fadeIn 0.3s ease;
+}
+
+.budget-alert-banner.alert-danger {
+  background: var(--brand-red-light);
+  border: 1px solid var(--brand-red);
+  color: var(--brand-red);
+}
+
+.budget-alert-banner.alert-warning {
+  background: var(--brand-amber-light);
+  border: 1px solid var(--brand-amber);
+  color: var(--brand-amber);
+}
+
+.budget-alert-banner code {
+  background: rgba(0, 0, 0, 0.08);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-family: var(--font-mono);
+}
+
+/* ========================================================
+   SECCIÓN DE CUPONES EN CARRITO
+   ======================================================== */
+.drawer-coupon-box {
+  background: var(--bg-card-subtle);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  margin: 14px 16px 8px 16px;
+}
+
+.coupon-box-title {
+  display: block;
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--text-main);
+  margin-bottom: 8px;
+}
+
+.coupon-input-row {
+  display: flex;
+  gap: 8px;
+}
+
+.coupon-field {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  outline: none;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+}
+
+.btn-apply-coupon {
+  background: var(--brand-green);
+  color: #ffffff;
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 800;
+  padding: 7px 14px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-apply-coupon:hover {
+  background: var(--brand-green-hover);
+}
+
+.coupon-hints-row {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.coupon-hints-row code {
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--brand-green);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+.coupon-applied-pill {
+  background: var(--brand-green-light);
+  border: 1px solid var(--brand-green-border);
+  color: var(--brand-green);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-remove-coupon {
+  background: transparent;
+  border: none;
+  color: var(--brand-red);
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0 4px;
+}
+
+/* ========================================================
+   MODAL DE SUITE DE PRUEBAS AUTOMATIZADAS
+   ======================================================== */
+.test-suite-header-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.test-stats-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ts-stat-chip {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  flex-direction: column;
+}
+
+.ts-chip-label {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.ts-chip-val {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--text-main);
+}
+
+.ts-stat-chip.pass .ts-chip-val {
+  color: var(--brand-green);
+}
+
+.ts-stat-chip.fail .ts-chip-val {
+  color: var(--brand-red);
+}
+
+.test-category-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border-color);
+  scrollbar-width: none;
+}
+
+.test-category-tabs::-webkit-scrollbar { display: none; }
+
+.test-tab-btn {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: var(--transition);
+}
+
+.test-tab-btn:hover, .test-tab-btn.active {
+  background: var(--brand-green);
+  color: #ffffff;
+  border-color: var(--brand-green);
+}
+
+.test-results-scroll {
+  max-height: 380px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+
+.test-item-card {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--brand-green);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  transition: var(--transition);
+}
+
+.test-item-card.fail {
+  border-left-color: var(--brand-red);
+  background: var(--brand-red-light);
+}
+
+.test-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.test-status-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.test-status-badge.pass {
+  background: var(--brand-green);
+  color: #ffffff;
+}
+
+.test-status-badge.fail {
+  background: var(--brand-red);
+  color: #ffffff;
+}
+
+.test-name {
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.test-time {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-light);
+}
+
+.test-item-category {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.test-item-category code {
+  font-family: var(--font-mono);
+  color: var(--brand-blue);
+}
+
+.test-item-error {
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: rgba(239, 68, 68, 0.12);
+  border-radius: 4px;
+  color: var(--brand-red);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  word-break: break-all;
+}
+
+/* ========================================================
+   CÓDIGOS DE BARRA RÁPIDOS
+   ======================================================== */
+.quick-barcode-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.quick-barcode-chip {
+  background: var(--bg-card-subtle);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-size: 0.76rem;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.quick-barcode-chip:hover {
+  border-color: var(--brand-green);
+  background: var(--brand-green-light);
+  color: var(--brand-green);
 }

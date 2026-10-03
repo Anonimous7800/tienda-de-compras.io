@@ -1,1 +1,0 @@
-# tienda-de-compras.io

@@ -5,7 +5,10 @@ class ApexStoreApp {
     this.currentUser = null;
     this.activeCategory = 'all';
     this.searchQuery = '';
+    this.sortBy = 'default';
     this.editingProductId = null;
+    this.speechRecognition = null;
+    this.appliedCoupon = null;
 
     this.init();
   }
@@ -15,18 +18,84 @@ class ApexStoreApp {
     this.currentUser = AuthManager.getCurrentUser();
     this.settings = StorageManager.getSettings();
     this.cart = StorageManager.getCart();
+    this.appliedCoupon = StorageManager.getAppliedCoupon();
 
+    this.applyTheme(this.settings.theme || 'light');
     this.bindEvents();
+    this.initSpeechRecognition();
     this.renderAuthStatus();
     this.renderStoreProducts();
     this.renderBudgetBar();
     this.updateCartDrawer();
+    this.updateFavoritesCount();
     this.registerServiceWorker();
   }
 
   formatMoney(amount) {
     const symbol = this.settings.currencySymbol || '$';
-    return `${symbol} ${Math.round(amount).toLocaleString('es-CO')}`;
+    return `${symbol} ${Math.round(amount || 0).toLocaleString('es-CO')}`;
+  }
+
+  applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    this.settings.theme = theme;
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) {
+      themeBtn.innerHTML = theme === 'dark' ? '☀️ Claro' : '🌙 Oscuro';
+      themeBtn.title = theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';
+    }
+  }
+
+  toggleTheme() {
+    const newTheme = (this.settings.theme === 'dark') ? 'light' : 'dark';
+    this.applyTheme(newTheme);
+    StorageManager.saveSettings({ theme: newTheme });
+    this.showToast(`Modo ${newTheme === 'dark' ? 'Oscuro' : 'Claro'} activado`);
+  }
+
+  initSpeechRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      this.speechRecognition = new SpeechRecognition();
+      this.speechRecognition.lang = 'es-CO';
+      this.speechRecognition.continuous = false;
+      this.speechRecognition.interimResults = false;
+
+      this.speechRecognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        const searchInput = document.getElementById('storeSearchInput');
+        if (searchInput) {
+          searchInput.value = transcript;
+          this.searchQuery = transcript;
+          this.renderStoreProducts();
+          this.showToast(`Buscando por voz: "${transcript}"`);
+        }
+      };
+
+      this.speechRecognition.onerror = () => {
+        this.showToast('No se detectó audio del micrófono', 'warning');
+      };
+
+      this.speechRecognition.onend = () => {
+        const micBtn = document.getElementById('btnVoiceSearch');
+        if (micBtn) micBtn.classList.remove('mic-recording');
+      };
+    }
+  }
+
+  startVoiceSearch() {
+    if (!this.speechRecognition) {
+      this.showToast('El reconocimiento por voz no está disponible en este navegador.', 'warning');
+      return;
+    }
+    const micBtn = document.getElementById('btnVoiceSearch');
+    if (micBtn) micBtn.classList.add('mic-recording');
+    this.showToast('🎤 Escuchando... Di el nombre de un alimento o producto');
+    try {
+      this.speechRecognition.start();
+    } catch (e) {
+      this.speechRecognition.stop();
+    }
   }
 
   renderAuthStatus() {
@@ -92,13 +161,31 @@ class ApexStoreApp {
     this.showToast('Sesión cerrada correctamente');
   }
 
+  toggleFavorite(productId, event) {
+    if (event) event.stopPropagation();
+    const favs = StorageManager.toggleFavorite(productId);
+    this.updateFavoritesCount();
+    this.renderStoreProducts();
+    const isFav = favs.includes(productId);
+    this.showToast(isFav ? '❤️ Guardado en tus Favoritos' : 'Removido de Favoritos');
+  }
+
+  updateFavoritesCount() {
+    const count = StorageManager.getFavorites().length;
+    const favCountEl = document.getElementById('navFavCount');
+    if (favCountEl) favCountEl.textContent = count;
+  }
+
   renderStoreProducts() {
     const grid = document.getElementById('storeProductsGrid');
     if (!grid) return;
 
     let products = Database.getAllProducts();
+    const favs = StorageManager.getFavorites();
 
-    if (this.activeCategory !== 'all') {
+    if (this.activeCategory === 'favorites') {
+      products = products.filter(p => favs.includes(p.id));
+    } else if (this.activeCategory !== 'all') {
       products = products.filter(p => p.category === this.activeCategory);
     }
 
@@ -107,8 +194,24 @@ class ApexStoreApp {
       products = products.filter(p => 
         p.name.toLowerCase().includes(q) || 
         (p.specs && p.specs.toLowerCase().includes(q)) ||
-        (p.description && p.description.toLowerCase().includes(q))
+        (p.description && p.description.toLowerCase().includes(q)) ||
+        (p.barcode && p.barcode.includes(q))
       );
+    }
+
+    if (this.sortBy === 'price_asc') {
+      products.sort((a, b) => Number(a.price) - Number(b.price));
+    } else if (this.sortBy === 'price_desc') {
+      products.sort((a, b) => Number(b.price) - Number(a.price));
+    } else if (this.sortBy === 'name_asc') {
+      products.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (this.sortBy === 'stock_desc') {
+      products.sort((a, b) => (Number(b.stock) || 0) - (Number(a.stock) || 0));
+    }
+
+    const countLabel = document.getElementById('storeProductsCount');
+    if (countLabel) {
+      countLabel.textContent = `${products.length} producto${products.length === 1 ? '' : 's'} disponible${products.length === 1 ? '' : 's'}`;
     }
 
     if (products.length === 0) {
@@ -116,21 +219,31 @@ class ApexStoreApp {
         <div style="grid-column: 1/-1; text-align: center; padding: 48px 16px; color: var(--text-muted); background: var(--bg-card); border: 1px dashed var(--border-color); border-radius: var(--radius-md);">
           <div style="font-size: 36px; margin-bottom: 8px;">🛒</div>
           <h3 style="font-family: var(--font-heading); color: var(--text-main);">No se encontraron productos</h3>
-          <p style="font-size: 0.85rem; margin-top: 4px;">Intenta con otra categoría o escribe otro término en el buscador.</p>
+          <p style="font-size: 0.85rem; margin-top: 4px;">
+            ${this.activeCategory === 'favorites' ? 'Aún no tienes productos en tu lista de favoritos.' : 'Intenta con otra categoría o escribe otro término en el buscador.'}
+          </p>
         </div>
       `;
       return;
     }
 
-    grid.innerHTML = products.map(prod => `
+    grid.innerHTML = products.map(prod => {
+      const isFav = favs.includes(prod.id);
+      return `
       <div class="market-item-card" id="prod-${prod.id}">
         <div class="mic-image-wrap">
-          <img src="${prod.image}" alt="${prod.name}" loading="lazy">
+          <img src="${prod.image}" alt="${prod.name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80'">
           <span class="mic-badge">${prod.tag || 'Fresco'}</span>
           <span class="mic-stock-tag">Stock: ${prod.stock || 20}</span>
+          <button class="mic-fav-btn ${isFav ? 'active' : ''}" onclick="app.toggleFavorite('${prod.id}', event)" title="${isFav ? 'Quitar de favoritos' : 'Guardar en favoritos'}">
+            ${isFav ? '❤️' : '🤍'}
+          </button>
         </div>
         <div class="mic-body">
-          <span class="mic-cat-label">${PRODUCT_CATEGORIES[prod.category]?.name || prod.category}</span>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <span class="mic-cat-label">${PRODUCT_CATEGORIES[prod.category]?.name || prod.category}</span>
+            ${prod.barcode ? `<span style="font-size: 0.65rem; color: var(--text-light); font-family: var(--font-mono);">#${prod.barcode}</span>` : ''}
+          </div>
           <h4 class="mic-title">${prod.name}</h4>
           <div class="mic-presentation">${prod.specs || ''}</div>
           <p class="mic-desc">${prod.description || ''}</p>
@@ -142,7 +255,8 @@ class ApexStoreApp {
           </div>
         </div>
       </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   filterCategory(catId) {
@@ -150,6 +264,11 @@ class ApexStoreApp {
     document.querySelectorAll('.cat-pill-btn').forEach(btn => {
       btn.classList.toggle('active', btn.dataset.cat === catId);
     });
+    this.renderStoreProducts();
+  }
+
+  setSorting(sortBy) {
+    this.sortBy = sortBy;
     this.renderStoreProducts();
   }
 
@@ -166,6 +285,7 @@ class ApexStoreApp {
 
   updateCartDrawer() {
     this.cart = StorageManager.getCart();
+    this.appliedCoupon = StorageManager.getAppliedCoupon();
 
     const countEl = document.getElementById('navCartCount');
     const totalCount = this.cart.reduce((acc, curr) => acc + curr.quantity, 0);
@@ -173,12 +293,34 @@ class ApexStoreApp {
 
     const itemsContainer = document.getElementById('cartItemsList');
     const subtotalEl = document.getElementById('cartDrawerSubtotal');
+    const discountRow = document.getElementById('cartDrawerDiscountRow');
+    const discountEl = document.getElementById('cartDrawerDiscountAmount');
     const totalEl = document.getElementById('cartDrawerTotal');
 
-    const total = this.cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+    const subtotal = this.cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+    let discount = 0;
 
-    if (subtotalEl) subtotalEl.textContent = this.formatMoney(total);
+    if (this.appliedCoupon) {
+      const val = StorageManager.validateCoupon(this.appliedCoupon.code, subtotal);
+      if (val.valid) {
+        discount = val.discountAmount;
+        if (discountRow) discountRow.style.display = 'flex';
+        if (discountEl) discountEl.textContent = `- ${this.formatMoney(discount)} (${this.appliedCoupon.code})`;
+      } else {
+        StorageManager.removeAppliedCoupon();
+        this.appliedCoupon = null;
+        if (discountRow) discountRow.style.display = 'none';
+      }
+    } else {
+      if (discountRow) discountRow.style.display = 'none';
+    }
+
+    const total = Math.max(0, subtotal - discount);
+
+    if (subtotalEl) subtotalEl.textContent = this.formatMoney(subtotal);
     if (totalEl) totalEl.textContent = this.formatMoney(total);
+
+    this.renderCouponBadge();
 
     if (!itemsContainer) return;
 
@@ -195,7 +337,7 @@ class ApexStoreApp {
 
     itemsContainer.innerHTML = this.cart.map(item => `
       <div class="drawer-item-row">
-        <img src="${item.image}" alt="${item.name}" class="dir-thumb">
+        <img src="${item.image}" alt="${item.name}" class="dir-thumb" onerror="this.src='https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=100&q=80'">
         <div class="dir-info">
           <div class="dir-name">${item.name}</div>
           <div class="dir-unit-price">${this.formatMoney(item.price)} c/u</div>
@@ -213,6 +355,60 @@ class ApexStoreApp {
     `).join('');
   }
 
+  applyCouponCode() {
+    const input = document.getElementById('couponCodeInput');
+    if (!input) return;
+
+    const code = input.value.trim().toUpperCase();
+    if (!code) {
+      this.showToast('Ingresa un código de cupón promocional', 'warning');
+      return;
+    }
+
+    const subtotal = this.cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+    if (subtotal === 0) {
+      this.showToast('Agrega productos al carrito antes de aplicar un cupón', 'warning');
+      return;
+    }
+
+    const validation = StorageManager.validateCoupon(code, subtotal);
+    if (validation.valid) {
+      this.appliedCoupon = StorageManager.saveAppliedCoupon(validation.coupon);
+      input.value = '';
+      this.updateCartDrawer();
+      this.renderBudgetBar();
+      this.showToast(`🎉 ${validation.message}`);
+    } else {
+      this.showToast(validation.message, 'warning');
+    }
+  }
+
+  removeCoupon() {
+    StorageManager.removeAppliedCoupon();
+    this.appliedCoupon = null;
+    this.updateCartDrawer();
+    this.renderBudgetBar();
+    this.showToast('Cupón promocional removido');
+  }
+
+  renderCouponBadge() {
+    const container = document.getElementById('appliedCouponContainer');
+    if (!container) return;
+
+    if (this.appliedCoupon) {
+      container.innerHTML = `
+        <div class="coupon-applied-pill">
+          <span>🏷️ <strong>${this.appliedCoupon.code}</strong> (${this.appliedCoupon.description})</span>
+          <button class="btn-remove-coupon" onclick="app.removeCoupon()" title="Quitar cupón">&times;</button>
+        </div>
+      `;
+      container.style.display = 'block';
+    } else {
+      container.innerHTML = '';
+      container.style.display = 'none';
+    }
+  }
+
   changeItemQty(id, delta) {
     this.cart = StorageManager.updateCartQty(id, delta);
     this.updateCartDrawer();
@@ -226,7 +422,14 @@ class ApexStoreApp {
   }
 
   renderBudgetBar() {
-    const total = this.cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+    const subtotal = this.cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+    let discount = 0;
+    if (this.appliedCoupon) {
+      const val = StorageManager.validateCoupon(this.appliedCoupon.code, subtotal);
+      if (val.valid) discount = val.discountAmount;
+    }
+    const total = Math.max(0, subtotal - discount);
+
     const budget = this.settings.budget || 150000;
     const remaining = budget - total;
     const percent = Math.min((total / budget) * 100, 100);
@@ -236,6 +439,7 @@ class ApexStoreApp {
     const barRemEl = document.getElementById('barRemainingAmount');
     const barFill = document.getElementById('barBudgetFill');
     const barRemLabel = document.getElementById('barRemainingLabel');
+    const budgetAlertBox = document.getElementById('budgetSmartAlert');
 
     if (barBudgetEl) barBudgetEl.textContent = this.formatMoney(budget);
     if (barTotalEl) barTotalEl.textContent = this.formatMoney(total);
@@ -256,6 +460,24 @@ class ApexStoreApp {
       barFill.style.width = `${percent}%`;
       barFill.style.background = remaining < 0 ? 'var(--brand-red)' : percent > 85 ? 'var(--brand-amber)' : 'var(--brand-green)';
     }
+
+    if (budgetAlertBox) {
+      if (remaining < 0) {
+        budgetAlertBox.style.display = 'flex';
+        budgetAlertBox.className = 'budget-alert-banner alert-danger';
+        budgetAlertBox.innerHTML = `
+          <span>⚠️ <strong>¡Atención!</strong> Has superado el presupuesto del hogar en <strong>${this.formatMoney(Math.abs(remaining))}</strong>. Revisa las cantidades en tu carrito o utiliza el cupón <code>FRESCO10</code> para ahorrar.</span>
+        `;
+      } else if (percent >= 85) {
+        budgetAlertBox.style.display = 'flex';
+        budgetAlertBox.className = 'budget-alert-banner alert-warning';
+        budgetAlertBox.innerHTML = `
+          <span>💡 <strong>Consejo Financiero:</strong> Estás al ${Math.round(percent)}% de tu presupuesto. Te restan <strong>${this.formatMoney(remaining)}</strong> disponibles.</span>
+        `;
+      } else {
+        budgetAlertBox.style.display = 'none';
+      }
+    }
   }
 
   openCartDrawer() {
@@ -274,10 +496,30 @@ class ApexStoreApp {
     this.closeCartDrawer();
     this.openModal('checkoutModal');
 
-    const total = this.cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
-    document.getElementById('checkoutTotalDisplay').textContent = this.formatMoney(total);
+    const subtotal = this.cart.reduce((acc, curr) => acc + (curr.price * curr.quantity), 0);
+    let discount = 0;
+    if (this.appliedCoupon) {
+      const val = StorageManager.validateCoupon(this.appliedCoupon.code, subtotal);
+      if (val.valid) discount = val.discountAmount;
+    }
+    const total = Math.max(0, subtotal - discount);
+
+    const checkoutTotal = document.getElementById('checkoutTotalDisplay');
+    if (checkoutTotal) checkoutTotal.textContent = this.formatMoney(total);
+
+    const checkoutDiscountRow = document.getElementById('checkoutDiscountNotice');
+    if (checkoutDiscountRow) {
+      if (discount > 0) {
+        checkoutDiscountRow.style.display = 'block';
+        checkoutDiscountRow.innerHTML = `Descuento aplicado: <strong>- ${this.formatMoney(discount)}</strong> (Cupón ${this.appliedCoupon.code})`;
+      } else {
+        checkoutDiscountRow.style.display = 'none';
+      }
+    }
+
     if (this.currentUser) {
-      document.getElementById('checkoutBuyerName').value = this.currentUser.name;
+      const nameInput = document.getElementById('checkoutBuyerName');
+      if (nameInput) nameInput.value = this.currentUser.name;
     }
   }
 
@@ -345,7 +587,7 @@ class ApexStoreApp {
               <tr>
                 <td>
                   <strong>${i.name}</strong><br>
-                  <span style="font-size: 0.72rem; color: #64748b;">${i.specs}</span>
+                  <span style="font-size: 0.72rem; color: #64748b;">${i.specs || ''}</span>
                 </td>
                 <td style="text-align: center; font-weight: 700;">${i.quantity}</td>
                 <td style="text-align: right;">${this.formatMoney(i.price)}</td>
@@ -365,6 +607,11 @@ class ApexStoreApp {
               <span>Subtotal Productos:</span>
               <span>${this.formatMoney(order.subtotal)}</span>
             </div>
+            ${order.discount ? `
+            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #059669; font-weight: 700; margin-bottom: 4px;">
+              <span>Descuento (${order.couponCode || 'Cupón'}):</span>
+              <span>- ${this.formatMoney(order.discount)}</span>
+            </div>` : ''}
             <div style="display: flex; justify-content: space-between; font-size: 0.82rem; color: #64748b; margin-bottom: 4px;">
               <span>Envío a Domicilio:</span>
               <span style="color: #059669; font-weight: 700;">GRATIS</span>
@@ -440,6 +687,7 @@ class ApexStoreApp {
         <td>
           <strong>${p.name}</strong><br>
           <span style="font-size: 0.72rem; color: var(--text-muted);">${p.specs || ''}</span>
+          ${p.barcode ? `<br><span style="font-size: 0.65rem; color: var(--text-light); font-family: var(--font-mono);">#${p.barcode}</span>` : ''}
         </td>
         <td>
           <span style="background: var(--bg-card-subtle); padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 0.72rem;">
@@ -537,6 +785,149 @@ class ApexStoreApp {
     this.showToast('Descargando archivo SQLite...');
   }
 
+  exportFullBackupJSON() {
+    StorageManager.exportDataJSON();
+    this.showToast('Copia de seguridad JSON descargada');
+  }
+
+  triggerImportJSON() {
+    const fileInput = document.getElementById('importBackupFileInput');
+    if (fileInput) fileInput.click();
+  }
+
+  handleBackupFileSelected(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const res = StorageManager.importDataJSON(e.target.result);
+      if (res.success) {
+        this.cart = StorageManager.getCart();
+        this.renderStoreProducts();
+        this.renderAdminDashboard();
+        this.renderBudgetBar();
+        this.updateCartDrawer();
+        this.showToast(`Respaldo importado con éxito (${res.count} productos)`);
+      } else {
+        this.showToast(`Error al importar respaldo: ${res.message}`, 'warning');
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
+  restoreFactoryCatalogPrompt() {
+    if (confirm('¿Deseas restaurar el catálogo oficial a los valores originales de fábrica?')) {
+      StorageManager.restoreFactoryDefaults();
+      this.renderAdminDashboard();
+      this.renderStoreProducts();
+      this.showToast('Catálogo de fábrica restaurado correctamente');
+    }
+  }
+
+  openBarcodeScanner() {
+    this.openModal('barcodeModal');
+  }
+
+  searchByBarcode(code) {
+    const q = code.trim();
+    if (!q) return;
+
+    const products = Database.getAllProducts();
+    const found = products.find(p => p.barcode === q || p.id === q);
+
+    if (found) {
+      this.closeModal('barcodeModal');
+      this.buyProduct(found.id);
+      this.showToast(`¡Código #${q} identificado! Se añadió "${found.name}" al carrito.`);
+    } else {
+      this.showToast(`No se encontró ningún producto con el código #${q}`, 'warning');
+    }
+  }
+
+  openTestSuiteModal() {
+    this.openModal('testSuiteModal');
+    if (!window.testSuite.results.length) {
+      this.runTestSuite();
+    } else {
+      this.renderTestSuiteResults();
+    }
+  }
+
+  async runTestSuite() {
+    const runBtn = document.getElementById('btnRunTests');
+    if (runBtn) {
+      runBtn.disabled = true;
+      runBtn.innerHTML = '⏳ Ejecutando pruebas...';
+    }
+
+    const summaryEl = document.getElementById('testSuiteSummary');
+    if (summaryEl) {
+      summaryEl.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted);">Ejecutando batería de pruebas unitarias y de integración...</div>';
+    }
+
+    await window.testSuite.runAllTests();
+
+    if (runBtn) {
+      runBtn.disabled = false;
+      runBtn.innerHTML = '▶️ Re-ejecutar Pruebas';
+    }
+
+    this.renderTestSuiteResults();
+    this.showToast('Suite de pruebas completada');
+  }
+
+  renderTestSuiteResults(filterCategory = 'all') {
+    const summary = window.testSuite.getSummary();
+
+    const totalEl = document.getElementById('tsStatTotal');
+    const passedEl = document.getElementById('tsStatPassed');
+    const failedEl = document.getElementById('tsStatFailed');
+    const timeEl = document.getElementById('tsStatTime');
+    const listEl = document.getElementById('testResultsList');
+
+    if (totalEl) totalEl.textContent = summary.total;
+    if (passedEl) passedEl.textContent = summary.passed;
+    if (failedEl) failedEl.textContent = summary.failed;
+    if (timeEl) timeEl.textContent = `${summary.durationMs} ms`;
+
+    if (!listEl) return;
+
+    let items = summary.results;
+    if (filterCategory !== 'all') {
+      items = items.filter(r => r.category === filterCategory);
+    }
+
+    listEl.innerHTML = items.map(r => {
+      const isPass = r.status === 'passed';
+      return `
+        <div class="test-item-card ${isPass ? 'pass' : 'fail'}">
+          <div class="test-item-header">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="test-status-badge ${isPass ? 'pass' : 'fail'}">
+                ${isPass ? '✓ PASS' : '✗ FAIL'}
+              </span>
+              <span class="test-name">${r.name}</span>
+            </div>
+            <span class="test-time">${r.durationMs} ms</span>
+          </div>
+          <div class="test-item-category">Módulo: <code>${r.category}</code></div>
+          ${r.error ? `
+            <div class="test-item-error">
+              <strong>Error detectado:</strong> ${r.error}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  downloadTestReport() {
+    window.testSuite.downloadReport();
+    this.showToast('Descargando reporte de pruebas en formato Markdown...');
+  }
+
   openHistoryModal() {
     const orders = StorageManager.getOrders();
     const list = document.getElementById('historyOrdersList');
@@ -546,13 +937,14 @@ class ApexStoreApp {
     } else {
       list.innerHTML = orders.map(o => `
         <div style="background: var(--bg-card-subtle); padding: 14px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); margin-bottom: 10px;">
-          <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--text-dark);">
+          <div style="display: flex; justify-content: space-between; font-size: 0.76rem; color: var(--text-muted);">
             <span>Factura ${o.orderId} • ${new Date(o.date).toLocaleDateString('es-CO')}</span>
             <span style="color: var(--brand-green); font-weight: 800;">✓ Aprobada</span>
           </div>
           <div style="font-weight: 800; font-size: 1.05rem; color: var(--text-main); margin: 4px 0;">Total: ${this.formatMoney(o.total)}</div>
           <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">
             ${o.itemCount} producto(s) para ${o.customer?.name || 'Cliente'} • ${o.paymentMethod}
+            ${o.couponCode ? `• <span style="color: var(--brand-green); font-weight: 700;">Cupón: ${o.couponCode}</span>` : ''}
           </div>
           <button class="btn-white-cta" style="padding: 5px 12px; font-size: 0.72rem;" onclick='app.showInvoiceModal(${JSON.stringify(o).replace(/'/g, "&apos;")})'>
             Ver Factura
@@ -602,6 +994,23 @@ class ApexStoreApp {
       searchInput.addEventListener('input', (e) => {
         this.searchQuery = e.target.value;
         this.renderStoreProducts();
+      });
+    }
+
+    const sortSelect = document.getElementById('storeSortSelect');
+    if (sortSelect) {
+      sortSelect.addEventListener('change', (e) => {
+        this.setSorting(e.target.value);
+      });
+    }
+
+    const couponInput = document.getElementById('couponCodeInput');
+    if (couponInput) {
+      couponInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          this.applyCouponCode();
+        }
       });
     }
   }
