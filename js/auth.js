@@ -34,12 +34,11 @@ class AuthManager {
     try {
       const raw = localStorage.getItem(AUTH_KEYS.CURRENT_USER);
       if (!raw) {
-        localStorage.setItem(AUTH_KEYS.CURRENT_USER, JSON.stringify(DEFAULT_ADMIN_USER));
-        return DEFAULT_ADMIN_USER;
+        return null;
       }
       return JSON.parse(raw);
     } catch (e) {
-      return DEFAULT_ADMIN_USER;
+      return null;
     }
   }
 
@@ -92,6 +91,10 @@ class AuthManager {
   }
 
   static setCurrentUser(user) {
+    if (!user) {
+      localStorage.removeItem(AUTH_KEYS.CURRENT_USER);
+      return;
+    }
     localStorage.setItem(AUTH_KEYS.CURRENT_USER, JSON.stringify(user));
     if (user.budget) {
       StorageManager.saveSettings({ budget: user.budget, currency: user.currency || 'COP' });

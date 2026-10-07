@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PICH FRESH // Mercado & Hogar - Tienda Inteligente 2026</title>
-  <meta name="description" content="PICH FRESH. Tienda inteligente de alimentos frescos, despensa y productos de aseo para el hogar con control de presupuesto en tiempo real, cupones y suite de pruebas.">
+  <meta name="description" content="PICH FRESH. Tienda inteligente de alimentos frescos, despensa y productos de aseo para el hogar con control de presupuesto en tiempo real y cupones de descuento.">
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/styles.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2248%22 fill=%22%23059669%22/><text x=%2250%25%22 y=%2255%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2250%22>🌱</text></svg>">
@@ -46,9 +46,7 @@
       <li><a class="nav-link-btn" onclick="app.filterCategory('aseo_hogar'); document.getElementById('storeSection').scrollIntoView({behavior: 'smooth'})">Aseo</a></li>
       <li><a class="nav-link-btn" onclick="app.filterCategory('frescos'); document.getElementById('storeSection').scrollIntoView({behavior: 'smooth'})">Lácteos</a></li>
       <li><a class="nav-link-btn" onclick="app.openModal('settingsModal')">Presupuesto</a></li>
-      <li><a class="nav-link-btn nav-test-btn" onclick="app.openTestSuiteModal()">🧪 Pruebas <span class="test-nav-badge">PASS</span></a></li>
       <li><a class="nav-link-btn" onclick="app.openHistoryModal()">Historial</a></li>
-      <li><a class="nav-link-btn" onclick="app.toggleAdminView()">⚙️ Admin</a></li>
     </ul>
 
     <div class="nav-user-actions">
@@ -62,13 +60,13 @@
       </button>
 
       <div id="authActionsContainer" style="display: flex; gap: 8px;">
-        <button class="btn-outline-client" onclick="app.openModal('loginModal')">Acceso Cliente</button>
+        <button class="btn-outline-client" onclick="app.openModal('loginModal')">Iniciar Sesión</button>
         <button class="btn-primary-client" onclick="app.openModal('registerModal')">Registrarse</button>
       </div>
 
       <div id="userProfileNav" class="user-logged-pill" style="display: none;" onclick="app.openModal('userProfileModal')">
         <span id="navUserAvatar">🛒</span>
-        <span id="navUserName">Oliver Camacho</span>
+        <span id="navUserName"></span>
       </div>
     </div>
   </nav>
@@ -112,9 +110,6 @@
           </button>
           <button class="btn-white-cta" onclick="app.filterCategory('aseo_hogar'); document.getElementById('storeSection').scrollIntoView({behavior: 'smooth'})">
             Línea de Aseo
-          </button>
-          <button class="btn-white-cta" onclick="app.openTestSuiteModal()">
-            🧪 Ver Pruebas del Sistema
           </button>
           <button class="btn-white-cta" onclick="app.openCartDrawer()">
             Ver Carrito 🛒
@@ -212,65 +207,12 @@
     <div class="store-meta-header">
       <span class="store-count-label" id="storeProductsCount">Cargando productos...</span>
       <span style="font-size: 0.78rem; color: var(--text-muted);">
-        🔒 SQLite WebAssembly Activo • Precios Oficiales 2026
+        ✓ Catálogo Oficial • Precios al Día 2026
       </span>
     </div>
 
     <div class="market-products-grid" id="storeProductsGrid"></div>
   </main>
-
-  <section id="adminDashboardSection">
-    <div class="admin-header">
-      <div class="admin-title-wrap">
-        <h2>Panel de Inventario & Base de Datos SQLite</h2>
-        <p>Gestión directa de catálogo con persistencia relacional en SQLite WebAssembly y Copias de Seguridad</p>
-      </div>
-      <div class="admin-header-actions">
-        <button class="btn-green-cta" onclick="app.openAddProductModal()">+ Nuevo Producto</button>
-        <button class="btn-white-cta" onclick="app.downloadSqlite()">💾 Descargar .sqlite</button>
-        <button class="btn-white-cta" onclick="app.exportFullBackupJSON()">📥 Exportar JSON</button>
-        <button class="btn-white-cta" onclick="app.triggerImportJSON()">📤 Importar JSON</button>
-        <input type="file" id="importBackupFileInput" accept=".json" style="display: none;" onchange="app.handleBackupFileSelected(event)">
-        <button class="btn-white-cta" style="color: var(--brand-amber);" onclick="app.restoreFactoryCatalogPrompt()">🔄 Reiniciar Catálogo</button>
-        <button class="btn-white-cta" onclick="app.toggleAdminView()">Volver a la Tienda</button>
-      </div>
-    </div>
-
-    <div class="admin-stats-grid">
-      <div class="admin-stat-card">
-        <span class="asc-label">Total Referencias</span>
-        <span class="asc-val" id="adminStatCount">0</span>
-      </div>
-      <div class="admin-stat-card">
-        <span class="asc-label">Unidades en Stock</span>
-        <span class="asc-val" id="adminStatStock">0</span>
-      </div>
-      <div class="admin-stat-card">
-        <span class="asc-label">Valor del Inventario</span>
-        <span class="asc-val" id="adminStatValue" style="color: var(--brand-green);">$ 0</span>
-      </div>
-      <div class="admin-stat-card">
-        <span class="asc-label">Facturas Emitidas</span>
-        <span class="asc-val" id="adminStatOrders" style="color: var(--brand-blue);">0</span>
-      </div>
-    </div>
-
-    <div class="admin-table-container">
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>Imagen</th>
-            <th>Producto & Código</th>
-            <th>Categoría</th>
-            <th>Precio Venta</th>
-            <th>Stock</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody id="adminProductsTableBody"></tbody>
-      </table>
-    </div>
-  </section>
 
   <!-- DRAWER DEL CARRITO DE COMPRAS -->
   <div class="drawer-overlay" id="cartDrawerModal">
@@ -319,69 +261,7 @@
     </div>
   </div>
 
-  <!-- MODAL SUITE DE PRUEBAS AUTOMATIZADAS -->
-  <div class="dialog-backdrop" id="testSuiteModal">
-    <div class="dialog-card test-suite-dialog" style="max-width: 820px;">
-      <div class="dialog-head">
-        <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 1.5rem;">🧪</span>
-          <div>
-            <h3 style="margin: 0; line-height: 1.2;">Suite de Pruebas Unitarias y de Integración</h3>
-            <p style="font-size: 0.74rem; color: var(--text-muted); margin: 0;">PICH FRESH • Framework Automatizado de Calidad de Software</p>
-          </div>
-        </div>
-        <button class="btn-close-x" onclick="app.closeModal('testSuiteModal')">&times;</button>
-      </div>
 
-      <div class="test-suite-header-actions">
-        <div class="test-stats-row">
-          <div class="ts-stat-chip">
-            <span class="ts-chip-label">Total Pruebas</span>
-            <span class="ts-chip-val" id="tsStatTotal">0</span>
-          </div>
-          <div class="ts-stat-chip pass">
-            <span class="ts-chip-label">Aprobadas</span>
-            <span class="ts-chip-val" id="tsStatPassed">0</span>
-          </div>
-          <div class="ts-stat-chip fail">
-            <span class="ts-chip-label">Fallidas</span>
-            <span class="ts-chip-val" id="tsStatFailed">0</span>
-          </div>
-          <div class="ts-stat-chip">
-            <span class="ts-chip-label">Tiempo Total</span>
-            <span class="ts-chip-val" id="tsStatTime">0 ms</span>
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-          <button class="btn-green-cta" id="btnRunTests" style="padding: 7px 16px; font-size: 0.8rem;" onclick="app.runTestSuite()">
-            ▶️ Re-ejecutar Pruebas
-          </button>
-          <button class="btn-white-cta" style="padding: 7px 16px; font-size: 0.8rem;" onclick="app.downloadTestReport()">
-            📥 Descargar Reporte (.md)
-          </button>
-        </div>
-      </div>
-
-      <div class="test-category-tabs">
-        <button class="test-tab-btn active" onclick="document.querySelectorAll('.test-tab-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); app.renderTestSuiteResults('all')">Todas</button>
-        <button class="test-tab-btn" onclick="document.querySelectorAll('.test-tab-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); app.renderTestSuiteResults('sqlite_db')">SQLite DB</button>
-        <button class="test-tab-btn" onclick="document.querySelectorAll('.test-tab-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); app.renderTestSuiteResults('auth_system')">Auth</button>
-        <button class="test-tab-btn" onclick="document.querySelectorAll('.test-tab-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); app.renderTestSuiteResults('cart_operations')">Carrito</button>
-        <button class="test-tab-btn" onclick="document.querySelectorAll('.test-tab-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); app.renderTestSuiteResults('coupons_system')">Cupones</button>
-        <button class="test-tab-btn" onclick="document.querySelectorAll('.test-tab-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); app.renderTestSuiteResults('budget_calculator')">Presupuesto</button>
-        <button class="test-tab-btn" onclick="document.querySelectorAll('.test-tab-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); app.renderTestSuiteResults('invoice_orders')">Facturación</button>
-        <button class="test-tab-btn" onclick="document.querySelectorAll('.test-tab-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); app.renderTestSuiteResults('search_filtering')">Filtros</button>
-        <button class="test-tab-btn" onclick="document.querySelectorAll('.test-tab-btn').forEach(b => b.classList.remove('active')); this.classList.add('active'); app.renderTestSuiteResults('favorites_system')">Favoritos</button>
-      </div>
-
-      <div class="test-results-scroll" id="testResultsList">
-        <div style="text-align: center; padding: 24px; color: var(--text-muted);">
-          Cargando pruebas...
-        </div>
-      </div>
-    </div>
-  </div>
 
   <!-- MODAL DE ESCÁNER DE CÓDIGO DE BARRAS -->
   <div class="dialog-backdrop" id="barcodeModal">
@@ -426,11 +306,11 @@
       <form onsubmit="event.preventDefault(); app.handleLogin();">
         <div class="fld-group">
           <label for="loginEmail">Correo Electrónico</label>
-          <input type="email" class="fld-input" id="loginEmail" required value="oliver.camacho@correo.edu.co">
+          <input type="email" class="fld-input" id="loginEmail" required placeholder="correo@ejemplo.com">
         </div>
         <div class="fld-group">
           <label for="loginPassword">Contraseña</label>
-          <input type="password" class="fld-input" id="loginPassword" required value="123">
+          <input type="password" class="fld-input" id="loginPassword" required placeholder="Tu contraseña">
         </div>
         <button type="submit" class="btn-form-confirm">Iniciar Sesión</button>
       </form>
@@ -446,7 +326,7 @@
       <form onsubmit="event.preventDefault(); app.handleRegister();">
         <div class="fld-group">
           <label for="regName">Nombre Completo</label>
-          <input type="text" class="fld-input" id="regName" required placeholder="Ej: Oliver Camacho">
+          <input type="text" class="fld-input" id="regName" required placeholder="Ej: Juan Pérez">
         </div>
         <div class="fld-group">
           <label for="regEmail">Correo Electrónico</label>
@@ -472,9 +352,9 @@
         <button class="btn-close-x" onclick="app.closeModal('userProfileModal')">&times;</button>
       </div>
       <div style="text-align: center; margin-bottom: 20px;">
-        <div style="font-size: 46px; margin-bottom: 6px;">🛒</div>
-        <h4 id="profileNameDisplay" style="font-size: 1.15rem; font-weight: 800;">Oliver Camacho</h4>
-        <p id="profileEmailDisplay" style="font-size: 0.8rem; color: var(--text-muted);">oliver.camacho@correo.edu.co</p>
+        <div style="font-size: 46px; margin-bottom: 6px;" id="profileAvatarDisplay">🛒</div>
+        <h4 id="profileNameDisplay" style="font-size: 1.15rem; font-weight: 800;">Cliente</h4>
+        <p id="profileEmailDisplay" style="font-size: 0.8rem; color: var(--text-muted);">cliente@correo.com</p>
       </div>
       <button class="btn-white-cta" style="width: 100%; margin-bottom: 10px;" onclick="app.openModal('settingsModal'); app.closeModal('userProfileModal');">
         Ajustar Presupuesto del Hogar
@@ -502,17 +382,17 @@
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <div class="fld-group">
             <label for="checkoutBuyerName">Nombre Completo *</label>
-            <input type="text" class="fld-input" id="checkoutBuyerName" required value="Oliver Camacho">
+            <input type="text" class="fld-input" id="checkoutBuyerName" required placeholder="Nombre completo">
           </div>
           <div class="fld-group">
             <label for="checkoutDocId">Cédula / NIT *</label>
-            <input type="text" class="fld-input" id="checkoutDocId" required value="1025487965">
+            <input type="text" class="fld-input" id="checkoutDocId" required placeholder="Número de documento">
           </div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
           <div class="fld-group">
             <label for="checkoutPhone">Teléfono / WhatsApp *</label>
-            <input type="tel" class="fld-input" id="checkoutPhone" required value="3124567890">
+            <input type="tel" class="fld-input" id="checkoutPhone" required placeholder="3001234567">
           </div>
           <div class="fld-group">
             <label for="checkoutCity">Ciudad / Municipio *</label>
@@ -521,7 +401,7 @@
         </div>
         <div class="fld-group">
           <label for="checkoutAddress">Dirección de Entrega (Calle, Carrera, Apto) *</label>
-          <input type="text" class="fld-input" id="checkoutAddress" required value="Calle 127 # 45 - 20 Apto 302">
+          <input type="text" class="fld-input" id="checkoutAddress" required placeholder="Calle 123 # 45 - 67">
         </div>
         <div class="fld-group">
           <label for="checkoutPayMethod">Medio de Pago</label>
@@ -577,70 +457,11 @@
     </div>
   </div>
 
-  <div class="dialog-backdrop" id="adminProductModal">
-    <div class="dialog-card" style="max-width: 580px;">
-      <div class="dialog-head">
-        <h3 id="adminProdModalTitle">Editar Producto en SQLite</h3>
-        <button class="btn-close-x" onclick="app.closeModal('adminProductModal')">&times;</button>
-      </div>
-      <form id="adminProductForm" onsubmit="event.preventDefault(); app.saveProductFromAdmin();">
-        <div class="fld-group">
-          <label for="admProdName">Nombre del Producto *</label>
-          <input type="text" class="fld-input" id="admProdName" required placeholder="Ej: Arroz Diana Premium">
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div class="fld-group">
-            <label for="admProdCategory">Categoría *</label>
-            <select class="fld-select" id="admProdCategory">
-              <option value="despensa">Alimentos & Despensa</option>
-              <option value="frescos">Frescos & Lácteos</option>
-              <option value="carnes">Carnes & Aves</option>
-              <option value="aseo_hogar">Aseo & Limpieza</option>
-              <option value="cuidado_personal">Cuidado Personal</option>
-              <option value="bebidas">Bebidas & Cafés</option>
-            </select>
-          </div>
-          <div class="fld-group">
-            <label for="admProdPrice">Precio Unitario ($) *</label>
-            <input type="number" class="fld-input" id="admProdPrice" required min="50" step="50">
-          </div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div class="fld-group">
-            <label for="admProdSpecs">Presentación / Gramaje</label>
-            <input type="text" class="fld-input" id="admProdSpecs" placeholder="Ej: Bolsa 1000g">
-          </div>
-          <div class="fld-group">
-            <label for="admProdStock">Unidades en Stock</label>
-            <input type="number" class="fld-input" id="admProdStock" value="25" min="0">
-          </div>
-        </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div class="fld-group">
-            <label for="admProdTag">Etiqueta Destacada</label>
-            <input type="text" class="fld-input" id="admProdTag" placeholder="Ej: Aseo, Fresco, Oferta">
-          </div>
-          <div class="fld-group">
-            <label for="admProdImage">URL de Imagen</label>
-            <input type="url" class="fld-input" id="admProdImage" placeholder="https://images.unsplash.com/...">
-          </div>
-        </div>
-        <div class="fld-group">
-          <label for="admProdDesc">Descripción</label>
-          <input type="text" class="fld-input" id="admProdDesc" placeholder="Breve descripción del producto">
-        </div>
-        <button type="submit" class="btn-form-confirm">Guardar en Base de Datos SQLite</button>
-      </form>
-    </div>
-  </div>
-
   <div class="toast-container" id="toastHost"></div>
 
   <script src="js/products.js"></script>
-  <script src="js/database.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/storage.js"></script>
-  <script src="js/tests.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

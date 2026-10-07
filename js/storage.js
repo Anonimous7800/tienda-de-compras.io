@@ -317,6 +317,26 @@ class StorageManager {
     a.click();
   }
 
+  static getProducts() {
+    try {
+      const raw = localStorage.getItem('pich_market_custom_products');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return (typeof STORE_PRODUCTS !== 'undefined') ? [...STORE_PRODUCTS] : [];
+  }
+
+  static saveProducts(products) {
+    try {
+      localStorage.setItem('pich_market_custom_products', JSON.stringify(products));
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   static exportDataJSON() {
     const data = {
       portal: 'PICH FRESH // TIENDA INTELIGENTE DE ALIMENTOS Y ASEO',
@@ -328,7 +348,7 @@ class StorageManager {
       orders: this.getOrders(),
       favorites: this.getFavorites(),
       appliedCoupon: this.getAppliedCoupon(),
-      products: Database.getAllProducts()
+      products: this.getProducts()
     };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -349,9 +369,7 @@ class StorageManager {
       if (data.favorites) localStorage.setItem(STORAGE_KEYS.FAVORITES, JSON.stringify(data.favorites));
 
       if (data.products && Array.isArray(data.products)) {
-        for (const p of data.products) {
-          Database.addProduct(p);
-        }
+        this.saveProducts(data.products);
       }
       return { success: true, count: data.products?.length || 0 };
     } catch (e) {
@@ -360,11 +378,7 @@ class StorageManager {
   }
 
   static restoreFactoryDefaults() {
-    if (typeof STORE_PRODUCTS !== 'undefined') {
-      for (const p of STORE_PRODUCTS) {
-        Database.addProduct(p);
-      }
-    }
+    localStorage.removeItem('pich_market_custom_products');
     localStorage.removeItem(STORAGE_KEYS.APPLIED_COUPON);
     localStorage.removeItem(STORAGE_KEYS.FAVORITES);
     return true;

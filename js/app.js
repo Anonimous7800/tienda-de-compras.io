@@ -13,8 +13,7 @@ class ApexStoreApp {
     this.init();
   }
 
-  async init() {
-    await Database.init();
+  init() {
     this.currentUser = AuthManager.getCurrentUser();
     this.settings = StorageManager.getSettings();
     this.cart = StorageManager.getCart();
@@ -122,12 +121,15 @@ class ApexStoreApp {
   }
 
   handleLogin() {
-    const email = document.getElementById('loginEmail').value;
-    const pass = document.getElementById('loginPassword').value;
+    const emailInput = document.getElementById('loginEmail');
+    const passInput = document.getElementById('loginPassword');
+    const email = emailInput ? emailInput.value : '';
+    const pass = passInput ? passInput.value : '';
 
     const res = AuthManager.login(email, pass);
     if (res.success) {
       this.currentUser = res.user;
+      if (passInput) passInput.value = '';
       this.closeModal('loginModal');
       this.renderAuthStatus();
       this.showToast(`Bienvenido de nuevo, ${res.user.name}`);
@@ -137,14 +139,20 @@ class ApexStoreApp {
   }
 
   handleRegister() {
-    const name = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const pass = document.getElementById('regPassword').value;
-    const budget = document.getElementById('regBudget').value;
+    const nameInput = document.getElementById('regName');
+    const emailInput = document.getElementById('regEmail');
+    const passInput = document.getElementById('regPassword');
+    const budgetInput = document.getElementById('regBudget');
+
+    const name = nameInput ? nameInput.value : '';
+    const email = emailInput ? emailInput.value : '';
+    const pass = passInput ? passInput.value : '';
+    const budget = budgetInput ? budgetInput.value : 150000;
 
     const res = AuthManager.register(name, email, pass, budget, '🛒');
     if (res.success) {
       this.currentUser = res.user;
+      if (passInput) passInput.value = '';
       this.closeModal('registerModal');
       this.renderAuthStatus();
       this.showToast(`Cuenta registrada para ${res.user.name}`);
@@ -180,7 +188,7 @@ class ApexStoreApp {
     const grid = document.getElementById('storeProductsGrid');
     if (!grid) return;
 
-    let products = Database.getAllProducts();
+    let products = StorageManager.getProducts();
     const favs = StorageManager.getFavorites();
 
     if (this.activeCategory === 'favorites') {
@@ -273,7 +281,7 @@ class ApexStoreApp {
   }
 
   buyProduct(productId) {
-    const products = Database.getAllProducts();
+    const products = StorageManager.getProducts();
     const prod = products.find(p => p.id === productId);
     if (!prod) return;
 
@@ -517,9 +525,13 @@ class ApexStoreApp {
       }
     }
 
-    if (this.currentUser) {
-      const nameInput = document.getElementById('checkoutBuyerName');
-      if (nameInput) nameInput.value = this.currentUser.name;
+    const nameInput = document.getElementById('checkoutBuyerName');
+    if (nameInput) {
+      if (this.currentUser) {
+        nameInput.value = this.currentUser.name;
+      } else if (nameInput.value === 'Oliver Camacho') {
+        nameInput.value = '';
+      }
     }
   }
 
@@ -660,7 +672,7 @@ class ApexStoreApp {
   }
 
   renderAdminDashboard() {
-    const products = Database.getAllProducts();
+    const products = StorageManager.getProducts();
     const orders = StorageManager.getOrders();
 
     const statCount = document.getElementById('adminStatCount');
@@ -712,18 +724,18 @@ class ApexStoreApp {
 
   openAddProductModal() {
     this.editingProductId = null;
-    document.getElementById('adminProdModalTitle').textContent = 'Agregar Nuevo Producto a SQLite';
+    document.getElementById('adminProdModalTitle').textContent = 'Agregar Nuevo Producto';
     document.getElementById('adminProductForm').reset();
     this.openModal('adminProductModal');
   }
 
   openEditProductModal(id) {
-    const products = Database.getAllProducts();
+    const products = StorageManager.getProducts();
     const p = products.find(i => i.id === id);
     if (!p) return;
 
     this.editingProductId = id;
-    document.getElementById('adminProdModalTitle').textContent = 'Editar Producto en SQLite';
+    document.getElementById('adminProdModalTitle').textContent = 'Editar Producto';
     document.getElementById('admProdName').value = p.name;
     document.getElementById('admProdCategory').value = p.category;
     document.getElementById('admProdPrice').value = p.price;
@@ -763,26 +775,35 @@ class ApexStoreApp {
       description
     };
 
-    Database.addProduct(prod);
+    let products = StorageManager.getProducts();
+    const idx = products.findIndex(p => p.id === prod.id);
+    if (idx >= 0) {
+      products[idx] = prod;
+    } else {
+      products.push(prod);
+    }
+    StorageManager.saveProducts(products);
+
     this.closeModal('adminProductModal');
     this.renderAdminDashboard();
     this.renderStoreProducts();
-    this.showToast(this.editingProductId ? 'Producto actualizado en SQLite' : 'Producto guardado en SQLite');
+    this.showToast(this.editingProductId ? 'Producto actualizado' : 'Producto guardado');
     this.editingProductId = null;
   }
 
   deleteProductPrompt(id) {
-    if (confirm('¿Estás seguro de quitar este producto de la base de datos SQLite?')) {
-      Database.deleteProduct(id);
+    if (confirm('¿Estás seguro de quitar este producto?')) {
+      let products = StorageManager.getProducts().filter(p => p.id !== id);
+      StorageManager.saveProducts(products);
       this.renderAdminDashboard();
       this.renderStoreProducts();
-      this.showToast('Producto eliminado de la base de datos');
+      this.showToast('Producto eliminado');
     }
   }
 
   downloadSqlite() {
-    Database.exportSqliteFile();
-    this.showToast('Descargando archivo SQLite...');
+    StorageManager.exportDataJSON();
+    this.showToast('Descargando copia de seguridad JSON...');
   }
 
   exportFullBackupJSON() {
@@ -834,7 +855,7 @@ class ApexStoreApp {
     const q = code.trim();
     if (!q) return;
 
-    const products = Database.getAllProducts();
+    const products = StorageManager.getProducts();
     const found = products.find(p => p.barcode === q || p.id === q);
 
     if (found) {
@@ -846,87 +867,6 @@ class ApexStoreApp {
     }
   }
 
-  openTestSuiteModal() {
-    this.openModal('testSuiteModal');
-    if (!window.testSuite.results.length) {
-      this.runTestSuite();
-    } else {
-      this.renderTestSuiteResults();
-    }
-  }
-
-  async runTestSuite() {
-    const runBtn = document.getElementById('btnRunTests');
-    if (runBtn) {
-      runBtn.disabled = true;
-      runBtn.innerHTML = '⏳ Ejecutando pruebas...';
-    }
-
-    const summaryEl = document.getElementById('testSuiteSummary');
-    if (summaryEl) {
-      summaryEl.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-muted);">Ejecutando batería de pruebas unitarias y de integración...</div>';
-    }
-
-    await window.testSuite.runAllTests();
-
-    if (runBtn) {
-      runBtn.disabled = false;
-      runBtn.innerHTML = '▶️ Re-ejecutar Pruebas';
-    }
-
-    this.renderTestSuiteResults();
-    this.showToast('Suite de pruebas completada');
-  }
-
-  renderTestSuiteResults(filterCategory = 'all') {
-    const summary = window.testSuite.getSummary();
-
-    const totalEl = document.getElementById('tsStatTotal');
-    const passedEl = document.getElementById('tsStatPassed');
-    const failedEl = document.getElementById('tsStatFailed');
-    const timeEl = document.getElementById('tsStatTime');
-    const listEl = document.getElementById('testResultsList');
-
-    if (totalEl) totalEl.textContent = summary.total;
-    if (passedEl) passedEl.textContent = summary.passed;
-    if (failedEl) failedEl.textContent = summary.failed;
-    if (timeEl) timeEl.textContent = `${summary.durationMs} ms`;
-
-    if (!listEl) return;
-
-    let items = summary.results;
-    if (filterCategory !== 'all') {
-      items = items.filter(r => r.category === filterCategory);
-    }
-
-    listEl.innerHTML = items.map(r => {
-      const isPass = r.status === 'passed';
-      return `
-        <div class="test-item-card ${isPass ? 'pass' : 'fail'}">
-          <div class="test-item-header">
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span class="test-status-badge ${isPass ? 'pass' : 'fail'}">
-                ${isPass ? '✓ PASS' : '✗ FAIL'}
-              </span>
-              <span class="test-name">${r.name}</span>
-            </div>
-            <span class="test-time">${r.durationMs} ms</span>
-          </div>
-          <div class="test-item-category">Módulo: <code>${r.category}</code></div>
-          ${r.error ? `
-            <div class="test-item-error">
-              <strong>Error detectado:</strong> ${r.error}
-            </div>
-          ` : ''}
-        </div>
-      `;
-    }).join('');
-  }
-
-  downloadTestReport() {
-    window.testSuite.downloadReport();
-    this.showToast('Descargando reporte de pruebas en formato Markdown...');
-  }
 
   openHistoryModal() {
     const orders = StorageManager.getOrders();

@@ -1,13 +1,11 @@
-const CACHE_NAME = 'pich-fresh-v4';
+const CACHE_NAME = 'pich-fresh-v6';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './css/styles.css',
   './js/products.js',
-  './js/database.js',
   './js/auth.js',
   './js/storage.js',
-  './js/tests.js',
   './js/app.js',
   './manifest.json'
 ];
